@@ -1,0 +1,1 @@
+Je vais analyser le contenu du fichier README.md que tu as téléversé pour le reproduire dans le nouveau dépôt.

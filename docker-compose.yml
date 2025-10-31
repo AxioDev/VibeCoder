@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vibecoder-postgres
+    environment:
+      POSTGRES_USER: vibecoder
+      POSTGRES_PASSWORD: vibecoder_password
+      POSTGRES_DB: vibecoder
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vibecoder"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  orchestrator:
+    build:
+      context: ./apps/orchestrator
+      dockerfile: Dockerfile
+    container_name: vibecoder-orchestrator
+    environment:
+      PORT: 8081
+      DATABASE_URL: postgresql://vibecoder:vibecoder_password@postgres:5432/vibecoder
+      NODE_ENV: production
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
